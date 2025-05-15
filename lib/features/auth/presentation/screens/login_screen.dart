@@ -24,7 +24,6 @@ class _LoginScreenState extends State<LoginScreen> {
       final authService = ServiceLocator.instance.authService;
 
       try {
-        _logger.e('try to auth with $values');
         final success = await authService.login(
           values['email'],
           values['password'],

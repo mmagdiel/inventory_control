@@ -28,7 +28,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
           values['password'],
           values['username'],
         );
-        _logger.e('try to auth with $mounted $success');
         if (!mounted) return;
 
         if (success) {
