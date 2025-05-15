@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:logger/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:pocketbase/pocketbase.dart';
 
@@ -8,7 +7,6 @@ class AuthService {
   static const String _userKey = 'current_user';
   final SharedPreferences _prefs;
   final _client = PocketBase('http://127.0.0.1:8090/api/');
-  final _logger = Logger();
 
   AuthService(this._prefs);
 
@@ -28,7 +26,6 @@ class AuthService {
         email,
         password,
       );
-      _logger.e('try to auth with $email: $password');
 
       await _prefs.setString(_tokenKey, authData.token);
       await _prefs.setString(_userKey, json.encode(authData.record?.data));

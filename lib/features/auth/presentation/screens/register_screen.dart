@@ -28,7 +28,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           values['password'],
           values['username'],
         );
-
+        _logger.e('try to auth with $mounted $success');
         if (!mounted) return;
 
         if (success) {
@@ -65,7 +65,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Image.asset(
-                'assets/images/logo.png',
+                'lib/assets/images/logo.png',
                 width: 120,
                 height: 120,
               ),

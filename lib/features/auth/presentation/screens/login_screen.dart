@@ -4,7 +4,6 @@ import 'package:form_builder_validators/form_builder_validators.dart';
 import 'package:inventory_control/services/service_locator.dart';
 import 'package:inventory_control/features/auth/presentation/screens/register_screen.dart';
 import 'package:inventory_control/features/dashboard/presentation/screens/dashboard_screen.dart';
-import 'package:logger/logger.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -16,7 +15,6 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormBuilderState>();
   bool _isLoading = false;
-  final _logger = Logger();
 
   Future<void> _handleLogin() async {
     if (_formKey.currentState?.saveAndValidate() ?? false) {
