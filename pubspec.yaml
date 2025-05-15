@@ -1,5 +1,5 @@
 name: inventory_control
-description: "A new Flutter project."
+description: "A cross-platform inventory control application with offline support"
 publish_to: 'none'
 version: 0.1.0
 
@@ -9,11 +9,57 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  # State Management
+  provider: ^6.1.1
+  flutter_riverpod: ^2.4.9
+
+  # Local Database
+  sqflite: ^2.4.2
+  sqflite_common_ffi: ^2.3.2+1
+  sqflite_common_ffi_web: ^0.4.2+3
+  path: ^1.8.3
+  
+  # Network and API
+  dio: ^5.4.0
+  pocketbase: ^0.18.1
+  connectivity_plus: ^5.0.2
+  
+  # Storage and Preferences
+  shared_preferences: ^2.2.2
+  path_provider: ^2.1.2
+  
+  # UI Components
+  flutter_form_builder: ^10.0.1
+  form_builder_validators: ^11.1.2
+  cached_network_image: ^3.3.1
+  mobile_scanner: ^3.5.6
+  intl: ^0.19.0
+  
+  # Utils
+  uuid: ^4.2.2
+  csv: ^5.1.1
+  logger: ^2.0.2+1
+  image_picker: ^1.0.7
+  file_picker: 10.1.9
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0
+  build_runner: ^2.4.8
 
 flutter:
   uses-material-design: true
+  
+  assets:
+    - lib/assets/images/
+    - lib/assets/icons/
+
+  fonts:
+    - family: Roboto
+      fonts:
+        - asset: lib/assets/fonts/Roboto-Regular.ttf
+        - asset: lib/assets/fonts/Roboto-Bold.ttf
+          weight: 700
+        - asset: lib/assets/fonts/Roboto-Light.ttf
+          weight: 300
