@@ -2,14 +2,17 @@ import 'package:inventory_control/services/database/database_service.dart';
 import 'package:inventory_control/services/auth/auth_service.dart';
 import 'package:pocketbase/pocketbase.dart';
 import 'package:logger/logger.dart';
+import 'package:inventory_control/config/app_config.dart';
 
 class SyncService {
   final DatabaseService _db;
   final AuthService _auth;
-  final _client = PocketBase('http://127.0.0.1:8090/api/');
+  late final PocketBase _client;
   final _logger = Logger();
 
-  SyncService(this._db, this._auth);
+  SyncService(this._db, this._auth) {
+    _client = PocketBase(AppConfig.apiUrl);
+  }
 
   Future<void> syncData() async {
     final token = await _auth.getToken();

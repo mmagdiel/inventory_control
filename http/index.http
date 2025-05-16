@@ -1,0 +1,7 @@
+POST http://127.0.0.1:8090/api/collections/users/auth-with-password
+content-type: application/json
+
+{
+    "identity": "mag@gmail.com",
+    "password": "12345678"
+}

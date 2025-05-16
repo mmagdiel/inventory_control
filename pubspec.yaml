@@ -21,6 +21,7 @@ dependencies:
   
   # Network and API
   dio: ^5.4.0
+  http: ^1.2.0
   pocketbase: ^0.18.1
   connectivity_plus: ^5.0.2
   

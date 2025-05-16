@@ -6,6 +6,7 @@ import 'package:inventory_control/services/service_locator.dart';
 import 'package:uuid/uuid.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart' as path;
+import 'package:http/http.dart' as http;
 
 class ProductFormScreen extends StatefulWidget {
   final Map<String, dynamic>? product;
@@ -19,7 +20,9 @@ class ProductFormScreen extends StatefulWidget {
 class _ProductFormScreenState extends State<ProductFormScreen> {
   final _formKey = GlobalKey<FormBuilderState>();
   bool _isLoading = false;
+  bool _isUploadingImage = false;
   String? _imageUrl;
+  File? _selectedImage;
   final _imagePicker = ImagePicker();
 
   @override
@@ -29,41 +32,73 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
   }
 
   Future<void> _pickImage() async {
-    final pickedFile = await _imagePicker.pickImage(source: ImageSource.gallery);
-    if (pickedFile != null) {
-      try {
-        final file = File(pickedFile.path);
-        final fileName = '${const Uuid().v4()}${path.extension(pickedFile.path)}';
-        
-        // Upload to PocketBase
-        final formData = {
-          'file': await file.readAsBytes(),
-          'name': fileName,
-        };
-        
-        final record = await ServiceLocator.instance.authService
-            .getClient()
-            .collection('product_images')
-            .create(body: formData);
-
+    try {
+      final pickedFile = await _imagePicker.pickImage(source: ImageSource.gallery);
+      if (pickedFile != null) {
         setState(() {
-          _imageUrl = ServiceLocator.instance.authService
-              .getClient()
-              .getFileUrl(record, record.data['file'])
-              .toString();
+          _selectedImage = File(pickedFile.path);
+          _isUploadingImage = true;
         });
-      } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error uploading image: $e')),
+
+        try {
+          final pb = await ServiceLocator.instance.authService.getClient();
+          final fileName = '${const Uuid().v4()}${path.extension(pickedFile.path)}';
+          
+          // Create multipart request
+          final bytes = await _selectedImage!.readAsBytes();
+          final multipartFile = http.MultipartFile.fromBytes(
+            'file',
+            bytes,
+            filename: fileName,
           );
+
+          // Upload to PocketBase
+          final record = await pb.collection('product_images').create(
+            body: {},
+            files: [multipartFile],
+          );
+
+          setState(() {
+            _imageUrl = pb.getFileUrl(record, record.getListValue('file').first).toString();
+            _isUploadingImage = false;
+          });
+        } catch (e) {
+          setState(() => _isUploadingImage = false);
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Error uploading image: $e'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
         }
+      }
+    } catch (e) {
+      setState(() => _isUploadingImage = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error picking image: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
     }
   }
 
   Future<void> _handleSubmit() async {
     if (_formKey.currentState?.saveAndValidate() ?? false) {
+      if (_isUploadingImage) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Please wait for the image to finish uploading'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+        return;
+      }
+
       setState(() => _isLoading = true);
 
       try {
@@ -81,9 +116,9 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
           'min_stock_level': num.parse(values['min_stock_level'].toString()),
           'max_stock_level': num.parse(values['max_stock_level'].toString()),
           'unit_of_measurement': values['unit_of_measurement'],
-          'cost_price': values['cost_price'] != null ? 
+          'cost_price': values['cost_price'] != null && values['cost_price'].toString().isNotEmpty ? 
               num.parse(values['cost_price'].toString()) : null,
-          'selling_price': values['selling_price'] != null ?
+          'selling_price': values['selling_price'] != null && values['selling_price'].toString().isNotEmpty ?
               num.parse(values['selling_price'].toString()) : null,
           'image_url': _imageUrl,
           'created_at': widget.product?['created_at'] ?? now,
@@ -99,6 +134,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
         if (!mounted) return;
         Navigator.pop(context, true);
       } catch (e) {
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error saving product: $e'),
@@ -127,7 +163,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
           child: Column(
             children: [
               GestureDetector(
-                onTap: _pickImage,
+                onTap: _isUploadingImage ? null : _pickImage,
                 child: Container(
                   width: 120,
                   height: 120,
@@ -141,9 +177,11 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                           )
                         : null,
                   ),
-                  child: _imageUrl == null
-                      ? const Icon(Icons.add_a_photo, size: 40)
-                      : null,
+                  child: _isUploadingImage
+                      ? const Center(child: CircularProgressIndicator())
+                      : _imageUrl == null
+                          ? const Icon(Icons.add_a_photo, size: 40)
+                          : null,
                 ),
               ),
               const SizedBox(height: 16),
@@ -317,7 +355,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                 width: double.infinity,
                 height: 48,
                 child: ElevatedButton(
-                  onPressed: _isLoading ? null : _handleSubmit,
+                  onPressed: (_isLoading || _isUploadingImage) ? null : _handleSubmit,
                   child: _isLoading
                       ? const SizedBox(
                           width: 24,
